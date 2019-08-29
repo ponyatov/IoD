@@ -95,4 +95,8 @@ class Web(Net):
         def index():
             return flask.render_template('index.html',ctx=ctx,web=self)
 
+        @app.route('/<path>.png')
+        def png(path):
+            return app.send_static_file('%s.png' % path)
+
         app.run(host=self['ip'].val,port=self['port'].val,debug=True)

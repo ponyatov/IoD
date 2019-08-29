@@ -1,0 +1,18 @@
+{% block head %}
+<head>
+        <title>{{ctx.head()}}</title>
+        <link rel="shortcut icon" href="/logo.png">
+<style>
+    * {
+        background: {{ web['back'].val }}; color: {{ web['fore'].val }};
+        font: {{ web['font'].val }}; font-size: {{ web['font']['size'].val }};
+    }
+</style>
+</head>
+{% endblock %}
+
+{% block dump %}
+{% endblock %}
+
+{% block script %}
+{% endblock %}
