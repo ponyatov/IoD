@@ -1,4 +1,15 @@
 *~
 *.swp
 *.log
+
 IoD
+IoD.exe
+
+pyvenv.cfg
+bin/
+lib/
+lib64
+share/
+include/
+*.pyc
+
