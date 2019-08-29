@@ -7,11 +7,19 @@
         background: {{ web['back'].val }}; color: {{ web['fore'].val }};
         font: {{ web['font'].val }}; font-size: {{ web['font']['size'].val }};
     }
+
+    #cli { position: absolute; bottom:0; width:95%; }
+    #cli > * { width:100%; }
+    #pad { color: lightblue; }
+    #go  { background: #002222; }
 </style>
 </head>
 {% endblock %}
 
 {% block dump %}
+{% endblock %}
+
+{% block cli %}
 {% endblock %}
 
 {% block script %}

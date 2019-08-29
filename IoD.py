@@ -1,5 +1,7 @@
 # Internet of Data implementation /Python3/
 
+import os,sys
+
 class Frame:
     def __init__(self,V):
         # type/class tag (required for PLY parser library)
@@ -22,7 +24,7 @@ class Frame:
         for i in self.slot:
             tree += self.slot[i].dump(depth+1,prefix='%s = '%i)
         for j in self.nest:
-            tree += i.dump(depth+1)
+            tree += j.dump(depth+1)
         return tree
     def head(self,prefix=''):
         return '%s<%s:%s> @%.x' % (prefix,self.type,self._val(),id(self))
@@ -90,10 +92,20 @@ class Web(Net):
     def eval(self,ctx):
         flask = __import__('flask')
         app = flask.Flask(self.val)
+        app.config['SECRET_KEY'] = os.urandom(32)
 
-        @app.route('/')
+        wtf     = __import__('flask_wtf')
+        wtforms = __import__('wtforms')
+        class CLI(wtf.FlaskForm):
+            pad = wtforms.TextAreaField('pad',default='# put your commands here')
+            go  = wtforms.SubmitField('GO')
+
+        @app.route('/',methods=['GET','POST'])
         def index():
-            return flask.render_template('index.html',ctx=ctx,web=self)
+            form = CLI()
+            if form.validate_on_submit():
+                ctx // String(str(form.pad.data))
+            return flask.render_template('index.html',ctx=ctx,web=self,form=form)
 
         @app.route('/<path>.png')
         def png(path):

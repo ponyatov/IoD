@@ -3,3 +3,12 @@
 {% block dump %}
 <pre>{{ctx.dump()}}</pre>
 {% endblock %}
+
+{% block cli %}
+<form id=cli action="" method="post">
+    {{ form.hidden_tag() }}
+    {{ form.pad(rows=5) }}
+    {{ form.go() }}
+</form>
+{% endblock %}
+
