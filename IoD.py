@@ -38,6 +38,7 @@ class Frame:
     def __getitem__(self,key):
         return self.slot[key]
     def __setitem__(self,key,that):
+        if callable(that): that = Cmd(that)
         self.slot[key] = that ; return self
     def __lshift__(self,that):
         if callable(that): return self << Cmd(that) # wrap py fn
@@ -49,6 +50,7 @@ class Frame:
 
     def pop(self): return self.nest.pop(-1)
     def top(self): return self.nest[-1]
+    def dropall(self): self.nest = [] ; return self
 
 class Primitive(Frame):
     def eval(self,ctx): ctx // self
@@ -68,6 +70,9 @@ class Num(Primitive):
     def __init__(self,V): Primitive.__init__(self,float(V))
 class Int(Num):
     def __init__(self,V): Primitive.__init__(self,int(V))
+    def todec(self): return Int(self.val)
+    def tohex(self): return Hex(hex(self.val))
+    def tobin(self): return Bin(bin(self.val))
 class Hex(Int):
     def __init__(self,V): Primitive.__init__(self,int(V[2:],0x10))
     def _val(self): return hex(self.val)
@@ -140,6 +145,16 @@ class Web(Net):
 vm = VM('IoD')
 vm['S'] = vm ; vm['W'] = vm
 
+def DOT(ctx): ctx.dropall()
+vm['.'] = DOT
+
+def DEC(ctx): ctx // ctx.pop().todec()
+vm << DEC
+def HEX(ctx): ctx // ctx.pop().tohex()
+vm << HEX
+def BIN(ctx): ctx // ctx.pop().tobin()
+vm << BIN
+
 import ply.lex as lex
 
 tokens = ['sym','num','int','hex','bin']
@@ -155,9 +170,17 @@ def t_bin(t):
     r'0b[01]+'
     return Bin(t.value)
 
-def t_num(t):
-    r'[+\-]?[0-9]+(\.[0-9]*)?([eE][+\-]?[0-9]+)?'
+def t_num_exp(t):
+    r'[+\-]?[0-9]+(\.[0-9]*)?[eE][+\-]?[0-9]+'
     return Num(t.value)
+
+def t_num_dot(t):
+    r'[+\-]?[0-9]+\.[0-9]*'
+    return Num(t.value)
+
+def t_int(t):
+    r'[+\-]?[0-9]+'
+    return Int(t.value)
 
 def t_sym(t):
     r'[^ \t\r\n\\\#]+'
@@ -175,8 +198,12 @@ def WORD(ctx):
 def FIND(ctx):
     token = ctx.pop()
     try: ctx // ctx[token.val]
-    except KeyError: ctx // token ; return False
+    except KeyError:
+        try: ctx // ctx[token.val.upper()]
+        except KeyError: ctx // token ; return False
     return True
+
+def EXEC(ctx): ctx.pop().eval(ctx)
 
 def INTERP(ctx):
     lexer.input(ctx.pop().val)
@@ -184,6 +211,7 @@ def INTERP(ctx):
         if not WORD(ctx): break
         if isinstance(ctx.top(),Sym):
             if not FIND(ctx): raise KeyError(ctx.top())
+            EXEC(ctx)
         print(ctx)
 
 def WEB(ctx): ctx['WEB'] = Web(ctx.val) ; ctx['WEB'].eval(ctx)

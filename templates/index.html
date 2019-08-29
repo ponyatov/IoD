@@ -5,10 +5,16 @@
 {% endblock %}
 
 {% block cli %}
-<form id=cli action="" method="post">
+<form id=cli action="" method="post" onkeypress="ctrlEnter(event,this);">
     {{ form.hidden_tag() }}
-    {{ form.pad(rows=5) }}
+    {{ form.pad(rows=5,autofocus=True) }}
     {{ form.go() }}
 </form>
 {% endblock %}
 
+{% block script %}
+function ctrlEnter(event, form) {
+    if((event.ctrlKey) && ((event.keyCode == 0xA)||(event.keyCode == 0xD)))
+        form.go.click()
+}
+{% endblock %}
