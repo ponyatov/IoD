@@ -13,3 +13,4 @@ share/
 include/
 *.pyc
 
+*.zodb*
