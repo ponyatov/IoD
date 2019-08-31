@@ -1,6 +1,6 @@
-# Internet of Data implementation /Python3/
+# microPython port for embedded devices
 
-import os,sys
+import uos as os,sys
 
 class Frame:
     def __init__(self,V):
@@ -59,6 +59,8 @@ class Frame:
     def press(self): self.pip() ; return self
     def dropall(self): self.nest = [] ; return self
 
+print( Frame('hello') // Frame('World') )
+
 class Primitive(Frame):
     def eval(self,ctx): ctx // self
 
@@ -106,52 +108,10 @@ class Cmd(Active):
     def eval(self,ctx):
         self.fn(ctx)
 
-class Seq(Active,Vector): pass
-
-class Doc(Frame): pass
-class Color(Doc): pass
-class Font(Doc): pass
-
-class IO(Frame): pass
-class Net(IO): pass
-class Ip(Net): pass
-class Port(Net): pass
-class Web(Net):
-    def __init__(self,V):
-        Net.__init__(self,V)
-        self['ip'] = Ip('127.0.0.1')
-        self['port'] = Port(8888)
-        self['back'] = Color('black')
-        self['fore'] = Color('lightgreen')
-        self['font'] = Font('monospace')
-        self['font']['size'] = Sym('3mm')
-    def eval(self,ctx):
-        flask = __import__('flask')
-        app = flask.Flask(self.val)
-        app.config['SECRET_KEY'] = os.urandom(32)
-
-        wtf     = __import__('flask_wtf')
-        wtforms = __import__('wtforms')
-        class CLI(wtf.FlaskForm):
-            testcmd = '# put your commands here\n-01 +02.30 -4e+5 0xDeadBeef 0b1101'
-            pad = wtforms.TextAreaField('pad',default=testcmd)
-            go  = wtforms.SubmitField('GO')
-
-        @app.route('/',methods=['GET','POST'])
-        def index():
-            form = CLI()
-            if form.validate_on_submit():
-                INTERP( ctx // Str(str(form.pad.data)) )
-            return flask.render_template('index.html',ctx=ctx,web=self,form=form)
-
-        @app.route('/<path>.png')
-        def png(path):
-            return app.send_static_file('%s.png' % path)
-
-        app.run(host=self['ip'].val,port=self['port'].val,debug=True)
-
 vm = VM('IoD')
 vm['S'] = vm ; vm['W'] = vm
+
+print(vm)
 
 def BYE(ctx): sys.exit(0)
 vm << BYE
@@ -176,40 +136,20 @@ vm << HEX
 def BIN(ctx): ctx // ctx.pop().tobin()
 vm << BIN
 
-import ply.lex as lex
-
-tokens = ['sym','num','int','hex','bin']
-
-t_ignore = ' \t\r\n'
-t_ignore_comment = r'[\#\\].*'
-
-def t_hex(t):
-    r'0x[0-9a-fA-F]+'
-    return Hex(t.value)
-
-def t_bin(t):
-    r'0b[01]+'
-    return Bin(t.value)
-
-def t_num_exp(t):
-    r'[+\-]?[0-9]+(\.[0-9]*)?[eE][+\-]?[0-9]+'
-    return Num(t.value)
-
-def t_num_dot(t):
-    r'[+\-]?[0-9]+\.[0-9]*'
-    return Num(t.value)
-
-def t_int(t):
-    r'[+\-]?[0-9]+'
-    return Int(t.value)
-
-def t_sym(t):
-    r'[^ \t\r\n\\\#]+'
-    return Sym(t.value)
-
-def t_error(t): raise SyntaxError(t)
-
-lexer = lex.lex()
+import ure as re
+class Lexer(Frame):
+    def input(self,src): self.src = src
+    def token(self):
+        if not self.src: return None
+        token = ''
+        def sym(): self.src = self.src[1:]
+        while self.src[0] in ' \t\r\n':
+            sym()
+        while self.src and self.src[0] not in ' \t\r\n':
+            token += self.src[0] ; sym()
+        if re.match(r'[+\-]?[0-9]+',token): return Int(token)
+        return Sym(token)
+lexer = Lexer('metaL')
 
 def WORD(ctx):
     token = lexer.token()
@@ -240,6 +180,4 @@ def REPL():
         try: vm // Str(input('ok> '))
         except EOFError: print('BYE\n') ; BYE(vm)
         INTERP(vm)
-
-def WEB(ctx): ctx['WEB'] = Web(ctx.val) ; ctx['WEB'].eval(ctx)
-vm << WEB
+REPL()
