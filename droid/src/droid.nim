@@ -5,3 +5,9 @@ import droidpkg/submodule
 
 when isMainModule:
   echo(getWelcomeMessage())
+
+const ver   = "branch: " & staticExec("git rev-parse --short HEAD")
+const os    = system.hostOS
+const about = "IoD/" & os & " " & ver
+
+echo about
