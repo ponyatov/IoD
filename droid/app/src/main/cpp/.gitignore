@@ -1,0 +1,3 @@
+*.json
+*.nim.cpp
+nimbase.h

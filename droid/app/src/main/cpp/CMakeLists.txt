@@ -19,6 +19,17 @@ add_library( # Sets the name of the library.
              # Provides a relative path to your source file(s).
              native-lib.cpp )
 
+
+add_library( # Integrate source code generated externally by Nim language translator
+        nim-lib
+
+        # Sets the library as a shared library.
+        SHARED
+
+        # Provides a relative path to your source file(s).
+        droid.nim.cpp droidpkg7submodule.nim.cpp
+        stdlib_io.nim.cpp stdlib_system.nim.cpp )
+
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library
