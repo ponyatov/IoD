@@ -1,4 +1,4 @@
-MERGE  = Makefile .gitignore
+MERGE  = README.md Makefile .gitignore
 MERGE += requirements.txt IoD.py metacircular.py
 MERGE += static templates
 MERGE += upy
